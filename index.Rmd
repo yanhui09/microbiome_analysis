@@ -1,10 +1,8 @@
 ---
 title: Microbiome analysis
-output: html_document
 
 ---
 
 **Welcome to the microbiome analysis tutorial at KU FOOD**  
---------------------------------------------------
 
 ![](https://media.giphy.com/media/OkJat1YNdoD3W/source.gif)

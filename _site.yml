@@ -11,6 +11,7 @@ output:
     theme: united
     highlight: pygments
     toc: true
+    fig_width: 8
     include:
       after_body: footer.html
     css: styles.css
