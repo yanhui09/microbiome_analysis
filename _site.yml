@@ -1,0 +1,16 @@
+name: "microbiome-analysis"
+navbar:
+  title: "Microbiome anlysis at KU FOOD"
+  left:
+  - text: "Home"
+    href: index.html
+  - text: "Tutorial in R"
+    href: 1_microbiome_r.html
+output:
+  html_document:
+    theme: united
+    highlight: pygments
+    toc: true
+    include:
+      after_body: footer.html
+    css: styles.css
