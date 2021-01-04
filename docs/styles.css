@@ -1,3 +1,7 @@
 blockquote {
   font-style: italic
 }
+
+table {
+  white-space: nowrap;
+}

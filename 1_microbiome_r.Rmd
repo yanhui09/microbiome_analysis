@@ -30,7 +30,7 @@ htmltools::tagList(
 )
 ```
 
-**BEFORE YOU START:** This is a * tutorial* to analyze microbiome data with R. The tutorial starts from the processed output from metagenomic sequencing, i.e. feature matrix. It's suitable for **R users** who wants to have hand-on tour of the microbiome world. This tutorial cover the common microbiome analysis e.g. alpha/beta diversity, differential abundance analysis).
+**BEFORE YOU START:** This is a tutorial to analyze microbiome data with R. The tutorial starts from the processed output from metagenomic sequencing, i.e. feature matrix. It's suitable for **R users** who wants to have hand-on tour of the microbiome world. This tutorial cover the common microbiome analysis e.g. alpha/beta diversity, differential abundance analysis).
 
 - The demo data-set comes from the [QIIME 2](https://qiime2.org/) tutorial - [Moving Pictures](https://docs.qiime2.org/2020.11/tutorials/moving-pictures/).
 - This is a **beginner tutorial**. You still have time to run away if you're an experienced bioinformatician. `r emo::ji("ghost")`
