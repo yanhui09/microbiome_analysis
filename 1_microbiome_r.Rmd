@@ -30,27 +30,29 @@ htmltools::tagList(
 )
 ```
 
-**BEFORE YOU START:** This is a *minimal tutorial* to visualize microbiome result with R. The tutorial starts from the processed output from metagenomic sequencing, e.g. feature matrix. It's suitable for someone who wants to try a hand-on analysis, especially for **R users**, helping you understand the basic concepts of microbiome outputs. This tutorial will only give inspirations for some common analysis (alpha/beta diversity, differential abundance analysis)， but it shall be adequate if you only consider microbiome as a sub-story.
+**BEFORE YOU START:** This is a * tutorial* to analyze microbiome data with R. The tutorial starts from the processed output from metagenomic sequencing, i.e. feature matrix. It's suitable for **R users** who wants to have hand-on tour of the microbiome world. This tutorial cover the common microbiome analysis e.g. alpha/beta diversity, differential abundance analysis).
 
 - The demo data-set comes from the [QIIME 2](https://qiime2.org/) tutorial - [Moving Pictures](https://docs.qiime2.org/2020.11/tutorials/moving-pictures/).
 - This is a **beginner tutorial**. You still have time to run away if you're an experienced bioinformatician. `r emo::ji("ghost")`
  
 ## What you will work on
- After sequencing, you will get some ([fastq](https://en.wikipedia.org/wiki/FASTQ_format)/[fast5](https://nanoporetech.com/nanopore-sequencing-data-analysis)/[h5](http://files.pacb.com/software/instrument/2.0.0/bas.h5%20Reference%20Guide.pdf)) files from the sequencing. These files contain the base information e.g. read quality. If the sequenced sample is a mixed community, i.e. metagenomics,  you need to identify where the reads come from (specific species and samples). There are plenty of strategies for metagenomics such as amplicon and shotgun sequencing. But they give more or less similar *structural profiles*:
+ After sequencing, you will get some ([fastq](https://en.wikipedia.org/wiki/FASTQ_format)/[fast5](https://nanoporetech.com/nanopore-sequencing-data-analysis)/[h5](http://files.pacb.com/software/instrument/2.0.0/bas.h5%20Reference%20Guide.pdf)) files from the sequencing. These files contain the nucleotide information. If the sequenced sample is a mixed community, i.e. metagenomics,  you need to identify where the reads come from (specific species and samples). There are plenty of strategies for metagenomics such as amplicon and shotgun sequencing. But you have more or less similar *structural profiles*:
  
-- Feature table (Necessary), a matrix containing the abundances of detected microbial features(OTUs, ASVs, microbial markers) 
-- Taxonomy table (Optional), an array indicating the  taxonomy of the features, which can be integrated in [biom format](https://biom-format.org/documentation/format_versions/biom-2.1.html).
-- Phylogenetic tree (Optional), a phylogenetic tree indicating the similarity of microbial features, potentially used when calculating phylogentic diversity metrics (optionally integrated in [biom format](https://biom-format.org/documentation/format_versions/biom-2.1.html)).
+- Feature table (Necessary), a matrix containing the abundances of detected microbial features (OTUs, ASVs, microbial markers) 
+- Taxonomy table (Optional), an array indicating the  taxonomic assignment of features, which can be integrated in [biom format](https://biom-format.org/documentation/format_versions/biom-2.1.html).
+- Phylogenetic tree (Optional), a phylogenetic tree indicating the evolutional similarity of microbial features, potentially used when calculating phylogenetic diversity metrics (optionally integrated in [biom format](https://biom-format.org/documentation/format_versions/biom-2.1.html)).
 - Metadata, a matrix containing the infomation for analysis (optionally integrated in [biom format](https://biom-format.org/documentation/format_versions/biom-2.1.html)).
  
 ## Preparation
-**Start with QIIME 2 output** Here QIIME 2 data is adopted as an example. If you don't have QIIME 2 output, if can skip the `bash code` for `QIIME 2` below. All data is imported using R built-ins, but QIIME 2 need extra steps outside R. QIIME 2 data file is defined as [qza](https://docs.qiime2.org/2020.11/concepts/) format , which is actually just *zipped* file. Below are data from the [Moving Pictures](https://docs.qiime2.org/2020.11/tutorials/moving-pictures/) in QIIME 2.
+**Start with QIIME 2 output** Here QIIME 2 data is adopted as an example. If you don't have QIIME 2 output, you can skip the `bash code` for `QIIME 2`. All data is imported using R built-ins, but QIIME 2 outputs need extra steps outside R. QIIME 2 data files are defined in [qza](https://docs.qiime2.org/2020.11/concepts/) format , which are actually just *zipped* files.  Below are data from the [Moving Pictures](https://docs.qiime2.org/2020.11/tutorials/moving-pictures/) in QIIME 2.
 
 ```{bash, echo = FALSE}
 ls *.qza sample-metadata.tsv
 ```
 
-As the R buildins didn't accept .qza or .biom files, here I give a example to transform these qza files to a R-like format. You need QIIME 2 (qiime2-2020.11) installed.
+Download [sample-metadata.tsv](https://data.qiime2.org/2020.11/tutorials/moving-pictures/sample_metadata.tsv), [table.qza](https://docs.qiime2.org/2020.11/data/tutorials/moving-pictures/table.qza), [taxonomy.qza](https://docs.qiime2.org/2020.11/data/tutorials/moving-pictures/taxonomy.qza) and [rooted-tree.qza](https://docs.qiime2.org/2020.11/data/tutorials/moving-pictures/rooted-tree.qza), and name it accordingly.
+
+As the R built-ins didn't accept .qza or .biom files, here I give an example to transform these qza files to a R-like format. You need QIIME 2 (qiime2-2020.11) [installed](https://docs.qiime2.org/2020.11/install/). Open the terminal and run the [bash](https://en.wikipedia.org/wiki/Bash_(Unix_shell)) script below. Windows users shall enable [WSL 2](https://docs.microsoft.com/en-us/windows/wsl/install-win10) (Windows Subsystem for Linux) or use [visual machines](https://docs.qiime2.org/2020.11/install/virtual/virtualbox/) instead.
 
 ```{bash, message = FALSE, results = FALSE, engine.opts = "-i"}
 conda activate qiime2-2020.11
@@ -66,7 +68,7 @@ And you will have
 ls *.tsv tree.nwk
 ```
 
-Install and load relevant packages: [phyloseq](https://github.com/joey711/phyloseq), [tidyverse](https://ggplot2.tidyverse.org/), [vegan](https://cran.r-project.org/web/packages/vegan/index.html), [DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html) , [ANCOMBC](http://www.bioconductor.org/packages/release/bioc/html/ANCOMBC.html), [ComplexHeatmap](https://bioconductor.org/packages/release/bioc/html/ComplexHeatmap.html). You can copy the code below.
+Install and load relevant packages: [phyloseq](https://github.com/joey711/phyloseq), [tidyverse](https://ggplot2.tidyverse.org/), [vegan](https://cran.r-project.org/web/packages/vegan/index.html), [DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html) , [ANCOMBC](http://www.bioconductor.org/packages/release/bioc/html/ANCOMBC.html), [ComplexHeatmap](https://bioconductor.org/packages/release/bioc/html/ComplexHeatmap.html). The following code are solely written in R. Now you can open the [Rstudio](https://rstudio.com/) and repeat it.
 
 ```{r, message = FALSE}
 p1 <- c("tidyverse", "vegan", "BiocManager")
@@ -83,7 +85,7 @@ invisible(lapply(c(p1,p2), load_package))
 ```
 
 ## Build phyloseq project 
-Load data to build a phyloseq project, phyloseq description is [here](https://joey711.github.io/phyloseq/import-data.html).
+To build a phyloseq project, the phyloseq description is [here](https://joey711.github.io/phyloseq/import-data.html).
 
 ```{r, warning = FALSE}
 otu <- read.table(file = "feature-table.tsv", sep = "\t", header = T, row.names = 1, 
@@ -140,12 +142,36 @@ TREE = read_tree("tree.nwk")
 ps <- phyloseq(OTU, TAX, SAMPLE,TREE)
 ```
 
-The phyloseq project looks like
+There's one loop to clean the Greengene format taxonomy. See what has happened there?  
+**Before**
+
+```r
+tax
+```
+
+```{r, echo = FALSE}
+DT::datatable(tax)
+```
+
+**After**
+
+```r
+taxa.clean
+```
+
+```{r, echo = FALSE}
+DT::datatable(tax.clean)
+```
+
+> Tips: The cleaning process helps when you want to collapse the feature table at one specific level, e.g. species or genus. The taxonomy of feature is identified by the [LCA algorithm](https://en.wikipedia.org/wiki/Lowest_common_ancestor), so it's possible that some features are merely classified at genus or family level due to the [Sequence homology](https://en.wikipedia.org/wiki/Sequence_homology). The loop is just to iteratively fill in the gaps with respective lowest taxonomic classification, resulting in more details in visualization.  
+
+
+An integrated phyloseq project looks like
 ```{r, echo = FALSE}
 ps
 ```
 
-## Check the sequencing depth with rarefaction curve
+## Check the sequencing depth with rarefaction curves
 
 ```{r, rarefaction, echo=FALSE}
 rarecurve(t(otu_table(ps)), step=50, cex=0.5)
@@ -158,7 +184,7 @@ depth <- colSums(otu_table(ps))
 
 The sequencing depth is `r sprintf("%.3f", mean(depth))` &plusmn; `r sprintf("%.3f", sd(depth))` (mean &plusmn; SD), ranging from `r min(depth)` to `r max(depth)`.
 
-As we could see, a sequencing depth of 1000 has captured most taxonomic tags. To minimize the bias from varying sequenicng depth, it's recommended to do a rarefaction before calculating diversity metrics. However, it's [not always the rule of thumb](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003531). To keep consistence with the [Moving pictures tutorial](https://docs.qiime2.org/2020.11/tutorials/moving-pictures/), we rarefy (resample) all samples to the sequencing depth of 1103. (As it's random sampling process, the result is unlikely to be identical as the [Moving pictures tutorial](https://docs.qiime2.org/2020.11/tutorials/moving-pictures/))
+As we could see, a sequencing depth of 1000 has captured most taxonomic tags. To minimize the bias from varying sequencing depth, rarefaction is recommended before calculating the diversity metrics. However, it's [not always the rule of thumb](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003531). To keep consistence with the [Moving pictures tutorial](https://docs.qiime2.org/2020.11/tutorials/moving-pictures/), all samples are rarefied (re-sampled) to the sequencing depth of 1103. As it's random sampling process, the result is unlikely to be identical as the [Moving pictures tutorial](https://docs.qiime2.org/2020.11/tutorials/moving-pictures/)
 
 ```{r, message = FALSE}
 set.seed(111) # keep result reproductive
@@ -226,7 +252,7 @@ DT::datatable(tab.shannon, rownames = FALSE)
 
 ## Beta diversity
 
-Beta diversity assesses the dissimilarity between ecosystem, telling you to what extend one community is different from another. Here are some demo code using Bray Curtis and binary Jaccard distance. I personally do not recommend direct use of the UniFrac metrics supported by phyloseq, especially when your tree is not dichotomous. This will happen when some children branches lose their parents during rarefaction `r emo::ji("sad")`.  You need to re-root your tree in e.g. QIIME 2 if you run into this case, see [here](https://github.com/joey711/phyloseq/issues/936). Besides, the UniFrac calculation by phyloseq has not been checked with the source code, see the posts in [phyloseq issues](https://github.com/joey711/phyloseq/issues/956) and [QIIME 2 forum](https://forum.qiime2.org/t/very-different-weighted-unifrac-results-for-qiime2-versus-phyloseq/4591). So it's safer to use QIIME 2 version for now given that both QIIME and UniFrac concept came from the [Knight lab](https://knightlab.ucsd.edu/).
+Beta diversity metrics assess the dissimilarity between ecosystem, telling you to what extend one community is different from another. Here are some demo code using Bray Curtis and binary Jaccard distance metrics. I personally do not recommend directly using the UniFrac metrics supported by phyloseq, especially when your tree is not dichotomous. This will happen when some children branches lose their parents in rarefaction.`r emo::ji("sad")`  You need to re-root your tree in e.g. QIIME 2 if you run into this case, see [here](https://github.com/joey711/phyloseq/issues/936). Besides, the UniFrac distance calculation by phyloseq has not been checked with the source code, see the posts in [phyloseq issues](https://github.com/joey711/phyloseq/issues/956) and [QIIME 2 forum](https://forum.qiime2.org/t/very-different-weighted-unifrac-results-for-qiime2-versus-phyloseq/4591). So it's safer to use QIIME 2 version given that both QIIME and UniFrac concepts came from the [Knight lab](https://knightlab.ucsd.edu/).
 
 #### [PCoA](https://mb3is.megx.net/gustame/dissimilarity-based-methods/principal-coordinates-analysis) and [PERMANOVA/ADONIS](https://mb3is.megx.net/gustame/hypothesis-tests/manova/npmanova)
 
@@ -275,11 +301,11 @@ p.table
 DT::datatable(p.table, rownames = FALSE)
 ```
 
-As we could see, there's no difference in composition between the left and right palm samples. Similar result can be found using binary Jaccard metrics. Adjust the `dist = distance(ps.rarefied, method="jaccard", binary = TRUE)` and `permanova_pairwise <- adonis(distance(ps.subs, method="jaccard", binary = TRUE) ~ body.site, data = metadata_sub)`, give it a try
+As we could see, there's no difference in composition between the left and right palm samples. Similar result can be found using binary Jaccard metrics. Adjust the `dist = distance(ps.rarefied, method="jaccard", binary = TRUE)` and `permanova_pairwise <- adonis(distance(ps.subs, method="jaccard", binary = TRUE) ~ body.site, data = metadata_sub)`, give it a try.
 
 #### [NMDS](https://mb3is.megx.net/gustame/dissimilarity-based-methods/nmds) and [ANOSIM](https://mb3is.megx.net/gustame/hypothesis-tests/anosim)
 
-Given that the microbiome data is compositional and sparse, non-parametric multidimentional scaling (NMDS) is favored sometimes, which usually alinged with ANOSIM test.
+The microbiome data is compositional and sparse. Non-parametric multidimentional scaling (NMDS) is favored also, usually aligned with ANOSIM test.
 
 - *Binary Jaccard*
 
@@ -325,7 +351,7 @@ The NMDS and ANOSIM result were similar to that from PCoA and ADONIS.
 
 ## Abundance bar plot
 
-Here the demos use un-rarefied table to show all detected tags. 
+Here the demos use a un-rarefied table to visualize all detected tags. 
 
 - *Phylum* 
 ```{r, phylum_abun, message = FALSE}
@@ -356,7 +382,7 @@ ggplot(ps.melt_sum, aes(x = Sample, y = Abundance, fill = Phylum)) +
         axis.text.x.bottom = element_text(angle = -90))
 
 ```
-`< 1%` indicates rare taxa in each group, with median relative abundance < 1%.
+`< 1%` indicates the rare taxa in each group, with median relative abundance < 1%.
 
 - *Genus*
 ```{r, genus_abun, message = FALSE}
@@ -388,7 +414,7 @@ ggplot(ps.melt_sum, aes(x = Sample, y = Abundance, fill = Genus)) +
         axis.text.x.bottom = element_text(angle = -90))
 
 ```
-`< 2.5%` indicates rare taxa in each group, with median relative abundance < 2.5%.
+`< 2.5%` indicates the rare taxa in each group, with median relative abundance < 2.5%.
 
 ## Differential abundance analysis
 
@@ -399,10 +425,10 @@ sample_data(ps)$body.site <- as.factor(sample_data(ps)$body.site) # factorize fo
 ps.taxa <- tax_glom(ps, taxrank = 'Species', NArm = FALSE)
 ```
 
-Let's see what features are enriched differentially between tongue and gut.
+Let's see what features are enriched differentially between tongue and gut samples.
 
 ### DESeq2
-DESeq2 is a software designed for RNA-seq, but also used in [microbiome analysis](https://joey711.github.io/phyloseq-extensions/DESeq2.html), and the detailed use of DESeq2 can be found [here](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#variations-to-the-standard-workflow). However, you're usually troubled by the "zero" issues in microbiome analysis. A pseudo count is added to avoid the issues of logarithm transformation.
+DESeq2 is a software designed for RNA-seq, but also used in [microbiome analysis](https://joey711.github.io/phyloseq-extensions/DESeq2.html), and the detailed use of DESeq2 can be found [here](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#variations-to-the-standard-workflow). You may be troubled by the "zero" issues in microbiome analysis. A pseudo count is added to avoid the errors in logarithm transformation.
 
 ```{r, message = FALSE}
 ps.taxa.pse <- ps.taxa
@@ -421,9 +447,9 @@ ps.taxa.rel.sig <- prune_taxa(taxa_sig, ps.taxa.rel)
 ps.taxa.rel.sig <- prune_samples(colnames(otu_table(ps.taxa.pse.sub)), ps.taxa.rel.sig)
 ```
 
-Visualize these biomarkers in heatmap using R package [ComplexHeatmap](https://bioconductor.org/packages/release/bioc/html/ComplexHeatmap.html), which is an improved package on the basis of pheatmap. A detailed reference book about ComplexHeatmap is [here](https://jokergoo.github.io/ComplexHeatmap-reference/book/). I like it because of its flexibility relative to built-in heatmap(), gplots::heatmap.2(), pheatmap::pheatmap() and heatmap3::heatmap(). However, the mentioned ones can also be adopted given the same theory of heatmap. The added function [ComplexHeatmap::pheatmap](https://jokergoo.github.io/ComplexHeatmap-reference/book/integrate-with-other-packages.html#pheatmap) inherited most settings of pheatmap, so I adopt it to make code easily understood.
+Visualize these biomarkers in heatmap using R package [ComplexHeatmap](https://bioconductor.org/packages/release/bioc/html/ComplexHeatmap.html), which is an improved package on the basis of pheatmap. A detailed reference book about ComplexHeatmap is [here](https://jokergoo.github.io/ComplexHeatmap-reference/book/). I like it because of its flexibility relative to built-in heatmap(), gplots::heatmap.2(), pheatmap::pheatmap() and heatmap3::heatmap(). However, the mentioned ones can also be adopted given the same theory of heatmap. The added function [ComplexHeatmap::pheatmap](https://jokergoo.github.io/ComplexHeatmap-reference/book/integrate-with-other-packages.html#pheatmap) inherited most settings of pheatmap, so I adopt it here to make code easily understood.
 
-To make `pheatmap` specfic,  it is written as `ComplexHeatmap::pheatmap`
+To make `pheatmap` specific,  it is written as `ComplexHeatmap::pheatmap`
 ```{r, deseq2}
 matrix <- as.matrix(data.frame(otu_table(ps.taxa.rel.sig)))
 rownames(matrix) <- as.character(tax_table(ps.taxa.rel.sig)[, "Species"])
@@ -457,9 +483,9 @@ ComplexHeatmap::pheatmap(matrix, scale= "row",
 ```
 
 ### ANCOM-BC
-Here I will introduce another statistical method specially designed for Microbiome data. I like its theory behind - sequencing is a process of sampling. For a microbial community under adequate sequencing, the ratio of two specific taxa should be theoretically the "same"  between their profiled relative abundances and the absolute abundance. The theory can be found in their [published paper](https://www.nature.com/articles/s41467-020-17041-7). ANCOM is one recommended method by QIIME 2 and similar theory is also adopted in another QIIME 2 plugin- [Geneiss](https://docs.qiime2.org/2020.11/tutorials/gneiss/). ANCOM is originally written in R and hosted in NIH, but the link has expired now. The [q2-compositon](https://docs.qiime2.org/2020.11/plugins/available/composition/) plugin is one accessible version to my knowledge. In that QIIME has no R API, I recommend to use improved ANCOM version e.g. [ANCOM 2](https://github.com/FrederickHuangLin/ANCOM) and [ANCOM-BC](https://github.com/FrederickHuangLin/ANCOMBC) if you only eat R code. These two have not been included in QIIME 2 and maintained by the lab members of the original ANCOM paper. The key differences between ANCOM 2 and ANCOM are how they treat *zeros* and introduced process of repeated data, and more can be found in the [paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5682008/). Considering the structure of code, ANCOM 2 is more like a wrapped R function of ANCOM, especially relative to ANCOM-BC.  ANCOM-BC inherited the methodology of preprocessing *zeros* in ANCOM but estimated the sampling bias by linear regression. Besides, it provides *p* values and according to the author, it is blazingly fast while controlling the FDR and maintaining adequate power. ANCOM-BC is maintained at [bioconductor](http://www.bioconductor.org/packages/release/bioc/html/ANCOMBC.html), and a vignette is [here](http://www.bioconductor.org/packages/release/bioc/vignettes/ANCOMBC/inst/doc/ANCOMBC.html). It's worth noting that ANCOM-BC is in development and now (Jan 2021) [only support testing for co-variates and global test](https://github.com/FrederickHuangLin/ANCOMBC/issues/5).
+Here I will introduce another statistical method specially designed for Microbiome data. I like its theory behind - sequencing is a process of sampling. For a microbial community under adequate sequencing, the ratio of two specific taxa should be theoretically the "same"  when calculated using either the profiled relative abundances or the absolute abundance. The theory can be found in their [published paper](https://www.nature.com/articles/s41467-020-17041-7). ANCOM is one recommended method by QIIME 2 and similar theory is also adopted by another QIIME 2 plugin- [Geneiss](https://docs.qiime2.org/2020.11/tutorials/gneiss/). ANCOM is originally written in R and hosted in NIH, but the link has expired now. The [q2-compositon](https://docs.qiime2.org/2020.11/plugins/available/composition/) plugin is one accessible version to my knowledge. In that QIIME has no official R API, I recommend using improved ANCOM version e.g. [ANCOM 2](https://github.com/FrederickHuangLin/ANCOM) or [ANCOM-BC](https://github.com/FrederickHuangLin/ANCOMBC). These two have not been included in QIIME 2 and maintained by the lab members of the original ANCOM paper. The key differences between ANCOM 2 and ANCOM are how they treat *zeros* and the introduced process of repeated data, and more can be found in the [paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5682008/). Considering the structure of code, ANCOM 2 is more like a wrapped R function of ANCOM, especially relative to ANCOM-BC.  ANCOM-BC inherited the methodology of pre-processing *zeros* in ANCOM but estimated the sampling bias by linear regression. Besides, it provides *p* values and according to the author, it is blazingly fast while controlling the FDR and maintaining adequate power. ANCOM-BC is maintained at [bioconductor](http://www.bioconductor.org/packages/release/bioc/html/ANCOMBC.html), and a vignette is [here](http://www.bioconductor.org/packages/release/bioc/vignettes/ANCOMBC/inst/doc/ANCOMBC.html). It's worth noting that ANCOM-BC is in development and now (Jan 2021) [only support testing for co-variates and global test](https://github.com/FrederickHuangLin/ANCOMBC/issues/5).
 
-So we adopt ANCOM-BC to repeat the test above. And here it takes *gut* label as a reference to other *body site* groups.
+ANCOM-BC is adopted here to repeat the test above. Here it takes *gut* label as a reference to other *body site* groups.
 
 ```{r, message = FALSE, results = FALSE, warning = FALSE}
 # pairwise comparison between gut and tongue
@@ -510,6 +536,6 @@ ComplexHeatmap::pheatmap(matrix, scale= "row",
                          annotation_colors = ann_colors)
 ```
 
-The *mini*-tour shall end here. In that you know how to import the microbiome data in R, you can continue exploring your data according to diverse tutorials including [phyloseq](https://joey711.github.io/phyloseq/) from U.S., [ampvis2](https://madsalbertsen.github.io/ampvis2/articles/ampvis2.html) from Denmark, and [MicrobiotaProcess](https://yulab-smu.top/MicrobiotaProcessWorkshop/articles/MicrobiotaProcessWorkshop.html) from China. 
+The tour shall end here. In that you know how to import the microbiome data in R, you can continue exploring your data according to diverse tutorials including [phyloseq](https://joey711.github.io/phyloseq/) from U.S., [ampvis2](https://madsalbertsen.github.io/ampvis2/articles/ampvis2.html) from Denmark, and [MicrobiotaProcess](https://yulab-smu.top/MicrobiotaProcessWorkshop/articles/MicrobiotaProcessWorkshop.html) from China. 
 
-If you want a GUI software for your microbiome analysis, you may like [microbiomeanalyst](https://www.microbiomeanalyst.ca/), which was recently published on [Nature protocol](https://www.nature.com/articles/s41596-019-0264-1). I haven't tried it yet in that I hate mouse clicking.`r emo::ji("munch")`
+If you want a GUI software for your microbiome analysis, you may like [microbiomeanalyst](https://www.microbiomeanalyst.ca/), which was recently published on [Nature protocol](https://www.nature.com/articles/s41596-019-0264-1). `r emo::ji("munch")`
