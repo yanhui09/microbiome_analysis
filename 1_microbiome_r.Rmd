@@ -150,7 +150,7 @@ tax
 ```
 
 ```{r, echo = FALSE}
-DT::datatable(tax)
+DT::datatable(tax, options = list(scrollX=T))
 ```
 
 **After**
@@ -160,10 +160,10 @@ taxa.clean
 ```
 
 ```{r, echo = FALSE}
-DT::datatable(tax.clean)
+DT::datatable(tax.clean, options = list(scrollX=T))
 ```
 
-> Tips: The cleaning process helps when you want to collapse the feature table at one specific level, e.g. species or genus. The taxonomy of feature is identified by the [LCA algorithm](https://en.wikipedia.org/wiki/Lowest_common_ancestor), so it's possible that some features are merely classified at genus or family level due to the [Sequence homology](https://en.wikipedia.org/wiki/Sequence_homology). The loop is just to iteratively fill in the gaps with respective lowest taxonomic classification, resulting in more details in visualization.  
+> Tips: The cleaning process helps when you want to collapse the feature table at one specific level, e.g. species or genus. The taxonomy of feature is identified by the [LCA algorithm](https://en.wikipedia.org/wiki/Lowest_common_ancestor), so it's possible that some features are merely classified at genus or family level due to the [sequence homology](https://en.wikipedia.org/wiki/Sequence_homology). The loop is just to iteratively fill in the gaps with respective lowest taxonomic classification, resulting in more details in visualization.  
 
 
 An integrated phyloseq project looks like
@@ -538,4 +538,4 @@ ComplexHeatmap::pheatmap(matrix, scale= "row",
 
 The tour shall end here. In that you know how to import the microbiome data in R, you can continue exploring your data according to diverse tutorials including [phyloseq](https://joey711.github.io/phyloseq/) from U.S., [ampvis2](https://madsalbertsen.github.io/ampvis2/articles/ampvis2.html) from Denmark, and [MicrobiotaProcess](https://yulab-smu.top/MicrobiotaProcessWorkshop/articles/MicrobiotaProcessWorkshop.html) from China. 
 
-If you want a GUI software for your microbiome analysis, you may like [microbiomeanalyst](https://www.microbiomeanalyst.ca/), which was recently published on [Nature protocol](https://www.nature.com/articles/s41596-019-0264-1). `r emo::ji("munch")`
+If you want a GUI software for your microbiome analysis, you may like [microbiomeanalyst](https://www.microbiomeanalyst.ca/), which was recently published on [Nature protocol](https://www.nature.com/articles/s41596-019-0264-1).
