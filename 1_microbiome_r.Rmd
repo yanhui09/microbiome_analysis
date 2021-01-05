@@ -301,7 +301,14 @@ p.table
 DT::datatable(p.table, rownames = FALSE)
 ```
 
-As we could see, there's no difference in composition between the left and right palm samples. Similar result can be found using binary Jaccard metrics. Adjust the `dist = distance(ps.rarefied, method="jaccard", binary = TRUE)` and `permanova_pairwise <- adonis(distance(ps.subs, method="jaccard", binary = TRUE) ~ body.site, data = metadata_sub)`, give it a try.
+As we could see, there's no difference in composition between the left and right palm samples. Similar result can be found using binary Jaccard metrics. Adjust the script of PERMANOVA/ADONIS accordingly with the code below and give it a try.
+```r
+dist = distance(ps.rarefied, method="jaccard", binary = TRUE)
+```
+And
+```r
+permanova_pairwise <- adonis(distance(ps.subs, method="jaccard", binary = TRUE) ~ body.site, data = metadata_sub)`
+```
 
 #### [NMDS](https://mb3is.megx.net/gustame/dissimilarity-based-methods/nmds) and [ANOSIM](https://mb3is.megx.net/gustame/hypothesis-tests/anosim)
 

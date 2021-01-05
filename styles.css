@@ -10,6 +10,10 @@ pre {
   overflow-x: auto;
 }
 pre code {
-  word-wrap: normal;
   white-space: pre;
+  word-wrap: normal;
+}
+
+blockquote {
+    font-size: 1rem;
 }
