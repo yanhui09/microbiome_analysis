@@ -382,6 +382,7 @@ ggplot(ps.melt_sum, aes(x = Sample, y = Abundance, fill = Phylum)) +
         axis.text.x.bottom = element_text(angle = -90))
 
 ```
+
 `< 1%` indicates the rare taxa in each group, with median relative abundance < 1%.
 
 - *Genus*
@@ -414,6 +415,7 @@ ggplot(ps.melt_sum, aes(x = Sample, y = Abundance, fill = Genus)) +
         axis.text.x.bottom = element_text(angle = -90))
 
 ```
+
 `< 2.5%` indicates the rare taxa in each group, with median relative abundance < 2.5%.
 
 ## Differential abundance analysis
