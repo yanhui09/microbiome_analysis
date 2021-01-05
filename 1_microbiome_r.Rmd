@@ -276,7 +276,7 @@ test.adonis
 ```
 
 ```{r, echo = FALSE}
-DT::datatable(test.adonis)
+DT::datatable(test.adonis, options = list(scrollX=T))
 ```
 
 *PAIRWISE PERMANOVA*
