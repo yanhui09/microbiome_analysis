@@ -30,7 +30,7 @@ htmltools::tagList(
 )
 ```
 
-**BEFORE YOU START:** This is a tutorial to analyze microbiome data with R. The tutorial starts from the processed output from metagenomic sequencing, i.e. feature matrix. It's suitable for **R users** who wants to have hand-on tour of the microbiome world. This tutorial cover the common microbiome analysis e.g. alpha/beta diversity, differential abundance analysis).
+**BEFORE YOU START:** This is a tutorial to analyze microbiome data with R. The tutorial starts from the processed output from metagenomic sequencing, i.e. a feature matrix. It's suitable for **R users** who wants to have hand-on tour of the microbiome world. This tutorial covers the common microbiome analysis e.g. alpha/beta diversity, differential abundance analysis.
 
 - The demo data-set comes from the [QIIME 2](https://qiime2.org/) tutorial - [Moving Pictures](https://docs.qiime2.org/2020.11/tutorials/moving-pictures/).
 - This is a **beginner tutorial**. You still have time to run away if you're an experienced bioinformatician. `r emo::ji("ghost")`
@@ -41,18 +41,18 @@ htmltools::tagList(
 - Feature table (Necessary), a matrix containing the abundances of detected microbial features (OTUs, ASVs, microbial markers) 
 - Taxonomy table (Optional), an array indicating the  taxonomic assignment of features, which can be integrated in [biom format](https://biom-format.org/documentation/format_versions/biom-2.1.html).
 - Phylogenetic tree (Optional), a phylogenetic tree indicating the evolutional similarity of microbial features, potentially used when calculating phylogenetic diversity metrics (optionally integrated in [biom format](https://biom-format.org/documentation/format_versions/biom-2.1.html)).
-- Metadata, a matrix containing the infomation for analysis (optionally integrated in [biom format](https://biom-format.org/documentation/format_versions/biom-2.1.html)).
+- Metadata, a data frame containing the grouping information, etc (optionally integrated in [biom format](https://biom-format.org/documentation/format_versions/biom-2.1.html)).
  
 ## Preparation
-**Start with QIIME 2 output** Here QIIME 2 data is adopted as an example. If you don't have QIIME 2 output, you can skip the `bash code` for `QIIME 2`. All data is imported using R built-ins, but QIIME 2 outputs need extra steps outside R. QIIME 2 data files are defined in [qza](https://docs.qiime2.org/2020.11/concepts/) format , which are actually just *zipped* files.  Below are data from the [Moving Pictures](https://docs.qiime2.org/2020.11/tutorials/moving-pictures/) in QIIME 2.
+**Start with QIIME 2 output** Here QIIME 2 data is adopted as an example. If you don't have QIIME 2 output, you can skip the `bash code` for `QIIME 2`. All data is imported using R built-ins, but QIIME 2 outputs need extra steps (Here the QIIME 2 tools is used. Some R tricks shall also work if you unzip the files there). QIIME 2 data files are defined in [qza](https://docs.qiime2.org/2020.11/concepts/) format , which are actually just *zipped* files.  Below are data from the [Moving Pictures](https://docs.qiime2.org/2020.11/tutorials/moving-pictures/) in QIIME 2.
 
 ```{bash, echo = FALSE}
 ls *.qza sample-metadata.tsv
 ```
 
-Download [sample-metadata.tsv](https://data.qiime2.org/2020.11/tutorials/moving-pictures/sample_metadata.tsv), [table.qza](https://docs.qiime2.org/2020.11/data/tutorials/moving-pictures/table.qza), [taxonomy.qza](https://docs.qiime2.org/2020.11/data/tutorials/moving-pictures/taxonomy.qza) and [rooted-tree.qza](https://docs.qiime2.org/2020.11/data/tutorials/moving-pictures/rooted-tree.qza), and name it accordingly.
+Download [sample-metadata.tsv](https://data.qiime2.org/2020.11/tutorials/moving-pictures/sample_metadata.tsv), [table.qza](https://docs.qiime2.org/2020.11/data/tutorials/moving-pictures/table.qza), [taxonomy.qza](https://docs.qiime2.org/2020.11/data/tutorials/moving-pictures/taxonomy.qza) and [rooted-tree.qza](https://docs.qiime2.org/2020.11/data/tutorials/moving-pictures/rooted-tree.qza), and name them accordingly.
 
-As the R built-ins didn't accept .qza or .biom files, here I give an example to transform these qza files to a R-like format. You need QIIME 2 (qiime2-2020.11) [installed](https://docs.qiime2.org/2020.11/install/). Open the terminal and run the [bash](https://en.wikipedia.org/wiki/Bash_(Unix_shell)) script below. Windows users shall enable [WSL 2](https://docs.microsoft.com/en-us/windows/wsl/install-win10) (Windows Subsystem for Linux) or use [visual machines](https://docs.qiime2.org/2020.11/install/virtual/virtualbox/) instead.
+As the R built-ins do not directly accept `.qza` or `.biom` files, we have to extract the content inside the `.qza` files. You need QIIME 2 (qiime2-2020.11) [installed](https://docs.qiime2.org/2020.11/install/). Open the terminal and run the [bash](https://en.wikipedia.org/wiki/Bash_(Unix_shell)) script below. Windows users shall enable [WSL 2](https://docs.microsoft.com/en-us/windows/wsl/install-win10) (Windows Subsystem for Linux) or use [visual machines](https://docs.qiime2.org/2020.11/install/virtual/virtualbox/) instead.
 
 ```{bash, message = FALSE, results = FALSE, engine.opts = "-i"}
 conda activate qiime2-2020.11
@@ -68,7 +68,7 @@ And you will have
 ls *.tsv tree.nwk
 ```
 
-Install and load relevant packages: [phyloseq](https://github.com/joey711/phyloseq), [tidyverse](https://ggplot2.tidyverse.org/), [vegan](https://cran.r-project.org/web/packages/vegan/index.html), [DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html) , [ANCOMBC](http://www.bioconductor.org/packages/release/bioc/html/ANCOMBC.html), [ComplexHeatmap](https://bioconductor.org/packages/release/bioc/html/ComplexHeatmap.html). The following code are solely written in R. Now you can open the [Rstudio](https://rstudio.com/) and repeat it.
+Install and load relevant packages: [phyloseq](https://github.com/joey711/phyloseq), [tidyverse](https://ggplot2.tidyverse.org/), [vegan](https://cran.r-project.org/web/packages/vegan/index.html), [DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html) , [ANCOMBC](http://www.bioconductor.org/packages/release/bioc/html/ANCOMBC.html), [ComplexHeatmap](https://bioconductor.org/packages/release/bioc/html/ComplexHeatmap.html). The following code are solely written in R. You can open the [Rstudio](https://rstudio.com/) and repeat it now.
 
 ```{r, message = FALSE}
 p1 <- c("tidyverse", "vegan", "BiocManager")
@@ -307,7 +307,7 @@ dist = distance(ps.rarefied, method="jaccard", binary = TRUE)
 ```
 And
 ```r
-permanova_pairwise <- adonis(distance(ps.subs, method="jaccard", binary = TRUE) ~ body.site, data = metadata_sub)`
+permanova_pairwise <- adonis(distance(ps.subs, method="jaccard", binary = TRUE) ~ body.site, data = metadata_sub)
 ```
 
 #### [NMDS](https://mb3is.megx.net/gustame/dissimilarity-based-methods/nmds) and [ANOSIM](https://mb3is.megx.net/gustame/hypothesis-tests/anosim)
@@ -420,14 +420,13 @@ ggplot(ps.melt_sum, aes(x = Sample, y = Abundance, fill = Genus)) +
   theme(legend.position = "right", 
         strip.background = element_blank(), 
         axis.text.x.bottom = element_text(angle = -90))
-
 ```
 
 `< 2.5%` indicates the rare taxa in each group, with median relative abundance < 2.5%.
 
 ## Differential abundance analysis
 
-Differential abundance analysis allows you to identify differentially abundant taxa between groups. There's many methods, here two commonly used ones are given as examples. Features are collapsed at the species-level prior to the calculation.
+Differential abundance analysis allows you to identify differentially abundant taxa between groups. There's many methods, here two commonly used ones are given as examples. Features are collapsed at the species level prior to the calculation.
 
 ```{r, message = FALSE}
 sample_data(ps)$body.site <- as.factor(sample_data(ps)$body.site) # factorize for DESeq2
@@ -492,7 +491,7 @@ ComplexHeatmap::pheatmap(matrix, scale= "row",
 ```
 
 ### ANCOM-BC
-Here I will introduce another statistical method specially designed for Microbiome data. I like its theory behind - sequencing is a process of sampling. For a microbial community under adequate sequencing, the ratio of two specific taxa should be theoretically the "same"  when calculated using either the profiled relative abundances or the absolute abundance. The theory can be found in their [published paper](https://www.nature.com/articles/s41467-020-17041-7). ANCOM is one recommended method by QIIME 2 and similar theory is also adopted by another QIIME 2 plugin- [Geneiss](https://docs.qiime2.org/2020.11/tutorials/gneiss/). ANCOM is originally written in R and hosted in NIH, but the link has expired now. The [q2-compositon](https://docs.qiime2.org/2020.11/plugins/available/composition/) plugin is one accessible version to my knowledge. In that QIIME has no official R API, I recommend using improved ANCOM version e.g. [ANCOM 2](https://github.com/FrederickHuangLin/ANCOM) or [ANCOM-BC](https://github.com/FrederickHuangLin/ANCOMBC). These two have not been included in QIIME 2 and maintained by the lab members of the original ANCOM paper. The key differences between ANCOM 2 and ANCOM are how they treat *zeros* and the introduced process of repeated data, and more can be found in the [paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5682008/). Considering the structure of code, ANCOM 2 is more like a wrapped R function of ANCOM, especially relative to ANCOM-BC.  ANCOM-BC inherited the methodology of pre-processing *zeros* in ANCOM but estimated the sampling bias by linear regression. Besides, it provides *p* values and according to the author, it is blazingly fast while controlling the FDR and maintaining adequate power. ANCOM-BC is maintained at [bioconductor](http://www.bioconductor.org/packages/release/bioc/html/ANCOMBC.html), and a vignette is [here](http://www.bioconductor.org/packages/release/bioc/vignettes/ANCOMBC/inst/doc/ANCOMBC.html). It's worth noting that ANCOM-BC is in development and now (Jan 2021) [only support testing for co-variates and global test](https://github.com/FrederickHuangLin/ANCOMBC/issues/5).
+Here I will introduce another statistical method specially designed for Microbiome data. I like its theory behind - sequencing is a process of sampling. For a microbial community under adequate sequencing, the ratio of two specific taxa should be theoretically the "same"  when calculated using either the profiled relative abundances or the absolute abundance. The theory can be found in their [published paper](https://www.nature.com/articles/s41467-020-17041-7). ANCOM is one recommended method by QIIME 2 and similar theory is also adopted by another QIIME 2 plugin- [Geneiss](https://docs.qiime2.org/2020.11/tutorials/gneiss/). ANCOM is originally written in R and hosted in NIH, but the link has expired now. The [q2-compositon](https://docs.qiime2.org/2020.11/plugins/available/composition/) plugin is one accessible version to my knowledge. In that QIIME has no official R API, I recommend using improved ANCOM version e.g. [ANCOM 2](https://github.com/FrederickHuangLin/ANCOM) or [ANCOM-BC](https://github.com/FrederickHuangLin/ANCOMBC). These two have not been included in QIIME 2 and maintained by the lab members of the original ANCOM paper. The key differences between ANCOM 2 and ANCOM are how they treat *zeros* and the introduced process of repeated data, and more can be found in the [paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5682008/). Considering the structure of code, ANCOM 2 is more like a wrapped R function of ANCOM, especially relative to ANCOM-BC. ANCOM-BC inherited the methodology of pre-processing *zeros* in ANCOM but estimated the sampling bias by linear regression. Besides, it provides *p* values and according to the author, it is blazingly fast while controlling the FDR and maintaining adequate power. ANCOM-BC is maintained at [bioconductor](http://www.bioconductor.org/packages/release/bioc/html/ANCOMBC.html), and a vignette is [here](http://www.bioconductor.org/packages/release/bioc/vignettes/ANCOMBC/inst/doc/ANCOMBC.html). It's worth noting that ANCOM-BC is in development and now (Jan 2021) [only support testing for co-variates and global test](https://github.com/FrederickHuangLin/ANCOMBC/issues/5).
 
 ANCOM-BC is adopted here to repeat the test above. Here it takes *gut* label as a reference to other *body site* groups.
 
