@@ -163,7 +163,7 @@ taxa.clean
 DT::datatable(tax.clean, options = list(scrollX=T))
 ```
 
-> Tips: The cleaning process helps when you want to collapse the feature table at one specific level, e.g. species or genus. The taxonomy of feature is identified by the [LCA algorithm](https://en.wikipedia.org/wiki/Lowest_common_ancestor), so it's possible that some features are merely classified at genus or family level due to the [sequence homology](https://en.wikipedia.org/wiki/Sequence_homology). The loop is just to iteratively fill in the gaps with respective lowest taxonomic classification, resulting in more details in visualization.  
+> Tips: The cleaning process helps when you want to collapse the feature table at one specific level, e.g. species or genus. The taxonomy of feature is identified by e.g. the [LCA algorithm](https://en.wikipedia.org/wiki/Lowest_common_ancestor). It's possible that some features are merely classified at genus or family level due to the [sequence homology](https://en.wikipedia.org/wiki/Sequence_homology). The loop is just to iteratively fill in the gaps with respective lowest taxonomic classification, resulting in more details in visualization.  
 
 
 An integrated phyloseq project looks like
