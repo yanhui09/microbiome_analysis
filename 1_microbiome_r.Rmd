@@ -84,7 +84,7 @@ load_package <- function(p) {
 invisible(lapply(c(p1,p2), load_package))
 ```
 
-## Build phyloseq project 
+## Build phyloseq object 
 To build a phyloseq project, the phyloseq description is [here](https://joey711.github.io/phyloseq/import-data.html).
 
 ```{r, warning = FALSE}
