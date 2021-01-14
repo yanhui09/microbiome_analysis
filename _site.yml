@@ -7,7 +7,7 @@ navbar:
   - text: "Tutorial in R"
     href: 1_microbiome_r.html
   right: 
-  - icon: fa-github fa-lg
+  - icon: fab fa-github
     href: https://github.com/yanhui09/microbiome_analysis
 output:
   html_document:
