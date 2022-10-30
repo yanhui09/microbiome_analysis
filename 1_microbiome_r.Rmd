@@ -436,14 +436,29 @@ ps.taxa <- tax_glom(ps, taxrank = 'Species', NArm = FALSE)
 Let's see what features are enriched differentially between tongue and gut samples.
 
 ### DESeq2
-DESeq2 is a software designed for RNA-seq, but also used in [microbiome analysis](https://joey711.github.io/phyloseq-extensions/DESeq2.html), and the detailed use of DESeq2 can be found [here](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#variations-to-the-standard-workflow). You may be troubled by the "zero" issues in microbiome analysis. A pseudo count is added to avoid the errors in logarithm transformation.
+DESeq2 is a software designed for RNA-seq, but also used in [microbiome analysis](https://joey711.github.io/phyloseq-extensions/DESeq2.html), and the detailed use of DESeq2 can be found [here](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#variations-to-the-standard-workflow). 
+
+> You may be troubled by the "zero" issues in microbiome analysis. 
+> Previously, a pseudo count is suggested to avoid the errors. 
+> However, the pseduo count violates the negative binomial distribution assumption of DESeq2, increasing false postives. [Phyloseq discussion](https://github.com/joey711/phyloseq/issues/642https://github.com/joey711/phyloseq/issues/642#issuecomment-243211388)
+> According to the recent update, `estimateSizeFactors` introduces alternate estimators (`type="iterate"` and `type="poscounts"`),
+> which can be used even when all genes contain a sample with a zero ([Biostar Discussion 1](https://support.bioconductor.org/p/63229/),
+> [Biostar Discussion 2](https://support.bioconductor.org/p/100201/)).
+> For DESeq2, it's suggested to use alternative estimators for the size factors rather than use tranformed counts.
+> Meanwhile, filtering sparse features (zeros in almost every observation) also benefits DESeq2 modelling.
+> It's highly suggested to go through the official [DESeq2 manual](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html) if the experiment desgin is complex.
+>  
+> Below we just filter features with more than 90% of zeros, for a quick demo.
+
 
 ```{r, message = FALSE}
-ps.taxa.pse <- ps.taxa
-otu_table(ps.taxa.pse) <- otu_table(ps.taxa) + 1
 # pairwise comparison between gut and tongue
-ps.taxa.pse.sub <- subset_samples(ps.taxa.pse, body.site %in% c("gut", "tongue"))
-ds = phyloseq_to_deseq2(ps.taxa.pse.sub, ~ body.site)
+ps.taxa.sub <- subset_samples(ps.taxa, body.site %in% c("gut", "tongue"))
+# filter sparse features, with > 90% zeros
+ps.taxa.pse.sub <- prune_taxa(rowSums(otu_table(ps.taxa.sub) == 0) < ncol(otu_table(ps.taxa.sub)) * 0.9, ps.taxa.sub)
+ps_ds = phyloseq_to_deseq2(ps.taxa.pse.sub, ~ body.site)
+# use alternative estimator on a condition of "every gene contains a sample with a zero"
+ds <- estimateSizeFactors(ps_ds, type="poscounts")
 ds = DESeq(ds, test="Wald", fitType="parametric")
 alpha = 0.05 
 res = results(ds, alpha=alpha)
@@ -505,12 +520,17 @@ out <- ancombc(phyloseq = ps.taxa.sub, formula = "body.site",
               max_iter = 100, conserve = TRUE, alpha = 0.05, global = TRUE)
 res <- out$res
 # select the bottom 20 with lowest p values
-res.or_p <- rownames(res$q_val[,"body.sitetongue"])[base::order(res$q_val[,"body.sitetongue"])]
+res.or_p <- rownames(res$q_val["body.sitetongue"])[base::order(res$q_val[,"body.sitetongue"])]
 taxa_sig <- res.or_p[1:20]
 ps.taxa.rel.sig <- prune_taxa(taxa_sig, ps.taxa.rel)
 # Only keep gut and tongue samples 
 ps.taxa.rel.sig <- prune_samples(colnames(otu_table(ps.taxa.sub)), ps.taxa.rel.sig)
 ``` 
+
+> Heatmap may not be a good choice to visualize ANCOM-BC results. 
+> `W` statistic is the suggested considering the concept of infering absolute variance by ANCOM-BC ([Github Answer](https://github.com/FrederickHuangLin/ANCOMBC/issues/10#issuecomment-731500283)).
+> You can follow the official [ANCOM-BC tutorial](https://bioconductor.org/packages/devel/bioc/vignettes/ANCOMBC/inst/doc/ANCOMBC.html)。
+> Here we just take a quick look at the results through heatmap.
 
 Repeat heatmap script for the ANCOM result
 ```{r, ancombc}
@@ -538,7 +558,7 @@ ann_colors = list(
     `Body site` = c(`gut` = "purple", tongue = "yellow"),
     Phylum = phylum_col
 )
-ComplexHeatmap::pheatmap(matrix, scale= "row", 
+ComplexHeatmap::pheatmap(matrix, 
                          annotation_col = annotation_col, 
                          annotation_row = annotation_row, 
                          annotation_colors = ann_colors)
